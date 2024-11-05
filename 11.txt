@@ -1,0 +1,143 @@
+MongoDB Map-reduces operations: Implement Map reduces operation with suitable example using MongoDB
+
+Queries (with outputs) - MapReduce
+
+1. mydb> db.collection2.insertMany([
+{
+ product: "Product A",
+ category: "Category 1",
+ sales: 100,
+ price: 29.99,
+ status: "active"
+ },
+ {
+ product: "Product B",
+ category: "Category 2",
+ sales: 150,
+ price: 19.99,
+ status: "active"
+ },
+ {
+ product: "Product C",
+ category: "Category 1",
+ sales: 80,
+ price: 39.99,
+ status: "inactive"
+ },
+ {
+ product: "Product D",
+ category: "Category 3",
+ sales: 200,
+ price: 49.99,
+ status: "active"
+ },
+ {
+ product: "Product E",
+ category: "Category 1",
+ sales: [100, 150], 
+ price: 29.99,
+ status: "active"
+ },
+ {
+ product: "Product F",
+ category: "Category 2",
+ sales: [200], 
+ price: 19.99,
+ status: "active"
+ },
+ {
+ product: "Product G",
+ category: "Category 1",
+ sales: [80], 
+ price: 39.99,
+ status: "inactive"
+ },
+ {
+ product: "Product H",
+ category: "Category 3",
+ sales: [300, 100], 
+ price: 49.99,
+ status: "active"
+ }
+ ]);
+
+2. Find sum of prices according to category
+mydb> db.collection1.mapReduce(
+function()
+{
+emit(this.category,this.price);
+},
+function(key,value)
+{
+return Array.sum(value);
+},
+{
+query:{status:"active"},
+out:"outprice"
+}
+);
+
+3. Find min of price
+mydb> db.collection1.mapReduce(
+function()
+{
+emit(this.category,this.price);
+},
+function(key,value)
+{
+return Math.min.apply(null,value);
+},
+{
+query:{status:"active"},
+out:"minprice"
+});
+
+4. db.collection2.mapReduce(
+function()
+{
+emit("category", 1)
+}, 
+function(key, value)
+{
+return Array.sum(value)
+},
+{
+out:"out1"
+}
+);
+
+5.Using Array :
+var mapFunction = function () {
+    var salesArray = Array.isArray(this.sales) ? this.sales : [this.sales];
+    salesArray.forEach(sale => emit(this.category, sale));
+};
+var reduceFunction = function (key, values) {
+    return Array.sum(values);
+};
+db.collection1.mapReduce(
+    mapFunction,
+    reduceFunction,
+    { out: "sales_totals_by_category" }
+);
+
+
+var mapFunction = function ()
+{
+var salesArray = Array.isArray(this.sales) ? this.sales : [this.sales];  
+ salesArray.forEach(sale => emit(this.category, sale));
+};
+
+var reduceFunction = function (key, values) 
+{
+return Array.sum(values);
+};
+
+db.collection1.mapReduce(
+mapFunction,
+reduceFunction,
+{ out: "sales_total_by_category" }
+);
+
+db.sales_total_by_category.find();
+
+

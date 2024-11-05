@@ -1,0 +1,215 @@
+
+import org.bson.Document;
+import com.mongodb.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.MongoCursor;
+import java.util.Arrays;
+import java.util.Scanner;
+public class Assignment12 {
+ private MongoClient mongoClient;
+ private MongoDatabase database;
+ private MongoCollection<Document> collection;
+ public Assignment12(String dbName, String collectionName) {
+ 	//mongoClient = new MongoClient("localhost", 27017);
+ mongoClient = MongoClients.create("mongodb://localhost:27017");
+ database = mongoClient.getDatabase(dbName);
+ collection = database.getCollection(collectionName);
+ }
+ // Create (Insert) Documents
+ public void createDocuments() {
+ Scanner scanner = new Scanner(System.in);
+ System.out.print("Enter college name: ");
+ String college = scanner.nextLine();
+ System.out.print("Enter branch name: ");
+ String branch = scanner.nextLine();
+ Document doc = new Document("college", college).append("branch", 
+branch);
+ collection.insertOne(doc);
+ System.out.println("Inserted document: " + doc.toJson());
+ }
+ // Read (Find) Documents
+ public void readDocuments() {
+ System.out.println("Documents in the collection:");
+ MongoCursor<Document> cursor = collection.find().iterator();
+ while (cursor.hasNext()) {
+ System.out.println(cursor.next().toJson());
+ }
+ }
+ // Update Documents
+ public void updateDocument() {
+ Scanner scanner = new Scanner(System.in);
+ System.out.print("Enter college name to update: ");
+ String college = scanner.nextLine();
+ System.out.print("Enter new branch name: ");
+ String newBranch = scanner.nextLine();
+ collection.updateOne(new Document("college", college),
+ new Document("$set", new Document("branch", newBranch)));
+ System.out.println("Updated document where college is " + college);
+ }
+ // Delete Documents
+ public void deleteDocuments() {
+ Scanner scanner = new Scanner(System.in);
+ System.out.print("Enter college name to delete: ");
+ String college = scanner.nextLine();
+ collection.deleteOne(new Document("college", college));
+ System.out.println("Deleted one document where college is " + college);
+ }
+ public void close() {
+ mongoClient.close();
+ System.out.println("Mongo connection closed.");
+ }
+ public static void main(String[] args) {
+ Assignment12 example = new Assignment12("connectiondb", "cutoff");
+ Scanner scanner = new Scanner(System.in);
+ int choice;
+ do {
+ System.out.println("\n--- MongoDB Menu ---");
+ System.out.println("1. Create Document");
+ System.out.println("2. Read Documents");
+ System.out.println("3. Update Document");
+ System.out.println("4. Delete Document");
+ System.out.println("5. Exit");
+ System.out.print("Enter your choice: ");
+ choice = scanner.nextInt();
+ scanner.nextLine(); 
+ switch (choice) {
+ case 1:
+ example.createDocuments();
+break;
+ case 2:
+ example.readDocuments();
+break;
+ case 3:
+ example.updateDocument();
+break;
+ case 4:
+ example.deleteDocuments();
+break;
+ case 5:
+ example.close();
+break;
+ default:
+ System.out.println("Invalid choice. Please try again.");
+ }
+ } while (choice != 5);
+ }
+}
+
+// Purti ka code
+
+import org.bson.Document;
+import java.util.*;
+import com.mongodb.*;
+import com.mongodb.client.*;
+import com.mongodb.client.model.*;
+public class MongoEg {
+private MongoClient mongoclient;
+private MongoCollection<Document> collection;
+private MongoDatabase database;
+public MongoEg(String dbname,String colname)
+{
+	mongoclient=MongoClients.create("mongodb://localhost:27017");
+	database=mongoclient.getDatabase(dbname);
+	collection=database.getCollection(colname);
+	
+}
+public void insertEmp()
+{   Scanner sc = new Scanner(System.in);
+	System.out.println("Enter Employee id");
+	int eid =sc.nextInt();
+             sc.nextLine();
+             System.out.println("Enter Employee name");
+    String name =sc.nextLine();
+    System.out.println("Enter Employee Salary");
+	int esal = sc.nextInt();
+	sc.nextLine();
+	System.out.println("Enter Employee Department");
+	String dept =sc.nextLine();
+	System.out.println("Enter no of degrees that employee has :");
+	int n = sc.nextInt();
+	String arr[]=new String[n];
+	for(int i=0;i<n;i++)
+	{
+		arr[i]=sc.nextLine();
+	}
+	List<String> deglist=new ArrayList<String>();
+	for(String a :arr)
+	{
+		deglist.add(a);
+	}
+	Document doc = new Document("emp_id",eid).append("emp_name", name).append("emp_sal", esal).append("emp_dept", dept).append("emp_deg", deglist);
+	collection.insertOne(doc);
+	System.out.println("Inserted data :"+doc.toJson());
+	
+}
+public void update()
+{   Scanner sc = new Scanner(System.in);
+	System.out.println("Enter Employee id:");
+	int eid = sc.nextInt();
+	System.out.println("Enter new Employee salary :");
+	int esal = sc.nextInt();
+//	 collection.updateOne(new Document("product",pname),new Document("$set",new Document("price",price)))
+	collection.updateOne(new Document("emp_id",eid),new Document("$set",new Document("emp_sal",esal)));
+	System.out.println("data Updated");
+}
+public void delete()
+{
+	  Scanner sc = new Scanner(System.in);
+		System.out.println("Enter Employee id:");
+		int eid = sc.nextInt();
+		collection.deleteOne(new Document("emp_id",eid));
+		System.out.println("data Deleted");
+}
+public void viewOne()
+{
+	Scanner sc = new Scanner(System.in);
+	System.out.println("Enter Employee id:");
+	int eid = sc.nextInt();
+	Document filter = new Document("emp_id",eid);
+	Document doc = collection.find(filter).first();
+	if(doc!=null)
+	{
+		System.out.println("Found data :"+doc.toJson());	
+	}
+	else
+	{
+		System.out.println("Entery not present");
+		
+	}
+}
+public void viewAll()
+{
+	MongoCursor<Document>cursor = collection.find().iterator();
+	while(cursor.hasNext())
+	{
+	  Document doc =cursor.next();
+	  System.out.println(doc.toJson());
+	}
+}
+public static void main(String arg[])
+{ Scanner sc = new Scanner(System.in);
+	MongoEg mg = new MongoEg("test","Employee");
+	int n;
+	while(true)
+	{
+		System.out.println("Enter operation to be performed\n 1.Insert\n2.Update\n3.Delete\n4.View one\n5,View all\n6.Exit");
+		 n =sc.nextInt();
+		switch(n)
+		{
+		case 1 : mg.insertEmp();
+		break;
+		case 2: mg.update();
+		break;
+		case 3 : mg.delete();
+		break;
+		case 4 : mg.viewOne();
+		break;
+		case 5 : mg.viewAll();
+		break;
+		case 6 : mg.mongoclient.close();
+		return;
+		}
+	}
+}
+}

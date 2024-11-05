@@ -1,0 +1,306 @@
+Write a program to implement MySQL/Oracle database connectivity with any front end language to implement Database navigation operations (add, delete, edit etc.)
+
+Program-
+
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Scanner;
+
+public class JDBC {
+
+    public static void main(String[] args) throws Exception {
+        String url = "jdbc:mysql://10.10.13.97:3306/te31404_db";
+        String user = "te31404";
+        String password = "te31404";
+        Scanner scanner = new Scanner(System.in);
+        Connection connection = null;
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            connection = DriverManager.getConnection(url, user, password);
+            System.out.println("Connection established");
+            while (true) {
+                System.out.println("\nMenu:");
+                System.out.println("1. Insert ");
+                System.out.println("2. Update ");
+                System.out.println("3. Delete ");
+                System.out.println("4. Show Table");
+                System.out.println("5. Exit");
+                System.out.print("Choose option: ");
+                int choice = scanner.nextInt();
+                scanner.nextLine();
+                switch (choice) {
+                    case 1:
+                        insertData(connection, scanner);
+                        break;
+                    case 2:
+                        updateData(connection, scanner);
+                        break;
+                    case 3:
+                        deleteData(connection, scanner);
+                        break;
+                    case 4:
+                        showTable(connection);
+                        break;
+                    case 5:
+                        System.out.println("Exiting...");
+                        return;
+                    default:
+                        System.out.println("Invalid choice. Please enter a number between 1 and 5.");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("SQL error occurred.");
+            e.printStackTrace();
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    System.err.println("Failed to close the connection.");
+                    e.printStackTrace();
+                }
+            }
+            scanner.close();
+        }
+    }
+
+    private static void insertData(Connection connection, Scanner scanner)
+            throws SQLException {
+        System.out.println("Enter name:");
+        String name = scanner.nextLine();
+        System.out.println("Enter roll number:");
+        int roll = scanner.nextInt();
+        scanner.nextLine();
+        System.out.println("Enter class:");
+        String cls = scanner.nextLine();
+        String sql = "INSERT INTO student1 (name, roll, cls) VALUES ('"
+                + name + "', " + roll + ", '" + cls + "')";
+        Statement statement = connection.createStatement();
+        int result = statement.executeUpdate(sql);
+        if (result == 1) {
+            System.out.println("Inserted successfully.");
+        } else {
+            System.out.println("Insertion failed.");
+        }
+    }
+
+    private static void updateData(Connection connection, Scanner scanner)
+            throws SQLException {
+        System.out.println("Enter roll number of the student to update:");
+        int roll = scanner.nextInt();
+        scanner.nextLine();
+        System.out.println("Enter new name:");
+        String name = scanner.nextLine();
+        System.out.println("Enter new class:");
+        String cls = scanner.nextLine();
+        System.out.println("Enter new roll number:");
+        int rollNew = scanner.nextInt();
+        scanner.nextLine();
+        String sql = "UPDATE student1 SET name = '" + name + "', cls = '"
+                + cls + "', roll = " + rollNew + " WHERE roll = " + roll;
+        Statement statement = connection.createStatement();
+        int result = statement.executeUpdate(sql);
+        if (result == 1) {
+            System.out.println("Updated successfully.");
+        } else {
+            System.out.println("Update failed or no record found.");
+        }
+    }
+
+    private static void deleteData(Connection connection, Scanner scanner)
+            throws SQLException {
+        System.out.println("Enter roll number of the student to delete:");
+        int roll = scanner.nextInt();
+        scanner.nextLine(); // Consume newline
+        String sql = "DELETE FROM student1 WHERE roll = " + roll;
+        Statement statement = connection.createStatement();
+        int result = statement.executeUpdate(sql);
+        if (result == 1) {
+            System.out.println("Deleted successfully.");
+        } else {
+            System.out.println("Deletion failed or no record found.");
+        }
+    }
+
+    private static void showTable(Connection connection) throws
+            SQLException {
+        String sql = "SELECT * FROM student1";
+        Statement statement = connection.createStatement();
+        ResultSet resultSet = statement.executeQuery(sql);
+        System.out.println("\nStudent Table:");
+        System.out.println("Name\tRoll Number\tClass");
+        while (resultSet.next()) {
+            String name = resultSet.getString("name");
+            int roll = resultSet.getInt("roll");
+            String cls = resultSet.getString("cls");
+            System.out.println(name + "\t" + roll + "\t" + cls);
+        }
+    }
+}
+
+
+// purti wala code (PreparedStatement)
+
+import java.sql.*;
+import java.util.*;
+
+public class MainProj {
+	private static Connection connection;
+	public static void insertStu(Scanner sc) throws Exception
+	{
+		System.out.println("Enter data :");
+		System.out.println("Enter id:");
+		int sid = sc.nextInt();
+		sc.nextLine();
+		System.out.println("Enter name:");
+		String sname = sc.nextLine();
+		System.out.println("Enter age:");
+		int age = sc.nextInt();
+		System.out.println("Enter marks:");
+		int smarks = sc.nextInt();
+		String query="INSERT INTO student values(?,?,?,?)";
+		PreparedStatement ps = connection.prepareStatement(query);
+		ps.setInt(1,sid);
+		ps.setString(2,sname);
+		ps.setInt(3,age); 
+		ps.setInt(4, smarks);
+		int r = ps.executeUpdate();
+		ps.close();
+		if(r>0)
+		{
+			System.out.println("Successfully inserted");
+		}
+		else
+		{
+			System.out.println("Failed to insert");
+		}
+	}
+	public static void deleteStu(Scanner sc) throws Exception
+	{
+		System.out.println("Enter id:");
+		int sid = sc.nextInt();
+		String query = "DELETE FROM student where id=?";
+		PreparedStatement ps = connection.prepareStatement(query);
+		ps.setInt(1, sid);
+		int r = ps.executeUpdate();
+		ps.close();
+		if(r>0)
+		{
+			System.out.println("Successfully deleted");
+		}
+		else
+		{
+			System.out.println("Failed to delete");
+		}
+	}
+	public static void updateStu(Scanner sc) throws Exception
+	{
+		System.out.println("Enter id:");
+		int sid = sc.nextInt();
+		System.out.println("Enter age:");
+		int age = sc.nextInt();
+		String query = "UPDATE student set age=? where id=?";
+		PreparedStatement ps = connection.prepareStatement(query);
+		ps.setInt(1, age);
+		ps.setInt(2,sid);
+		int r = ps.executeUpdate();
+		ps.close();
+		if(r>0)
+		{
+			System.out.println("Successfully updated");
+		}
+		else
+		{
+			System.out.println("Failed to update");
+		}
+	}
+	public static void viewOne(Scanner sc)throws Exception
+	{
+		System.out.println("Enter id:");
+		int sid = sc.nextInt();
+		String query = "SELECT * FROM student where id=?";
+		PreparedStatement ps = connection.prepareStatement(query);
+		ps.setInt(1, sid);
+		ResultSet rs = ps.executeQuery();
+		if(rs.next())
+		{
+			int id = rs.getInt("id");
+			String sname = rs.getString("name");
+			int age = rs.getInt("age");
+			int marks = rs.getInt("marks");
+			System.out.println("Id: "+id);
+			System.out.println("Name: "+sname);
+			System.out.println("Age : "+age);
+			System.out.println("Marks: "+marks);
+		}
+		else
+		{
+			System.out.println("Invalid id");
+		}
+		rs.close();
+		ps.close();
+		
+	}
+	public static void viewAll()throws Exception
+	{
+		Statement st = connection.createStatement();
+		ResultSet rs = st.executeQuery("select *from Student");
+		while(rs.next())
+		{
+			int id = rs.getInt("id");
+			String sname = rs.getString("name");
+			int age = rs.getInt("age");
+			int marks = rs.getInt("marks");
+			System.out.println("Id: "+id);
+			System.out.println("Name: "+sname);
+			System.out.println("Age : "+age);
+			System.out.println("Marks: "+marks);
+		}
+		
+	}
+ public static void main(String args[])
+ {
+	try {
+		Class.forName("com.mysql.cj.jdbc.Driver");
+		Scanner sc = new Scanner(System.in);
+		int c;
+		connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/te31465_db","root","admin123");
+		while(true)
+		{
+			System.out.println("Enter operation");
+			System.out.println("1.Insert\n2.Delete\n3.Update\n4.ViewOne\n5.View all \n 6. exit");
+			 c = sc.nextInt();
+			switch(c)
+			{
+			case 1:
+				insertStu(sc);
+				break;
+			case 2 :
+				deleteStu(sc);
+				break;
+			case 3 :
+				updateStu(sc);
+				break;
+			case 4:
+				viewOne(sc);
+				break;
+			case 5 :
+				viewAll();
+				break;
+			case 6:
+				connection.close();
+				return;
+			}
+		}
+	} 
+	catch(Exception e)
+	{
+		System.out.println(e.getMessage());
+	}
+ }
+}
+
