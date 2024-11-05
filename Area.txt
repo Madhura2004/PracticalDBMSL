@@ -1,0 +1,17 @@
+DELIMITER //
+
+CREATE PROCEDURE CalArea10()
+BEGIN
+    DECLARE v_radius FLOAT;
+    DECLARE v_area FLOAT;
+
+    SET v_radius = 5;
+
+    WHILE v_radius < 10 DO
+        SET v_area = 3.15 * v_radius * v_radius;
+        INSERT INTO area2(radius, area) VALUES (v_radius, v_area);
+        SET v_radius = v_radius + 1;
+    END WHILE;
+END //
+
+DELIMITER ;
